@@ -1,23 +1,15 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import History from "./Components/History";
+import Ongoing from "./Components/Ongoing";
+import PlayerData from "./Components/PlayerData";
+import Players from "./Components/Players";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="flex flex-row justify-evenly text-2xl font-mono">
+      <Ongoing className="text-2xl"></Ongoing>
+      <Players className="text-2xl"></Players>
+      <PlayerData></PlayerData>
     </div>
   );
 }
