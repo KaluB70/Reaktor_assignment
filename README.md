@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## To start
 
-Couldn't figure out the CORS error when fetching data, so I used a chrome extension called **[Moesif Origin & CORS Changer](https://chrome.google.com/webstore/detail/moesif-origin-cors-change/digfbfaphojjndkpccljibejjbppifbc)** - TO BE RESOLVED
+Couldn't figure out the CORS error when fetching data, so I used a chrome extension called **[Moesif Origin & CORS Changer](https://chrome.google.com/webstore/detail/moesif-origin-cors-change/digfbfaphojjndkpccljibejjbppifbc)** - TO BE RESOLVED  
 In project directory, run:
 
 ### `npm start`
