@@ -15,8 +15,9 @@ function PlayerData() {
   if (chosenPlayer !== "")
     return (
       <div>
-        <h2 className="font-extrabold text-3xl">{chosenPlayer}</h2>
-        <div className="font-semibold">
+        <div className="font-semibold h-fit bg-violet-200 border-2 rounded-lg text-center mt-2">
+          <h2 className="font-bold text-4xl">{chosenPlayer}</h2>
+          <br />
           TOTAL GAMES PLAYED: {totalGames}
           <br />
           WINS: {wins} LOSSES: {losses} Draws: {draws}
@@ -24,10 +25,11 @@ function PlayerData() {
           WIN RATIO: {winRatio}
           <br />
           MOST PLAYED HAND: {mostPlayedHand}
-          <br />
         </div>
-        <ul className="max-h-96 overflow-y-scroll mt-6">
+        <h2 className="mt-4 font-bold text-2xl border-2 rounded-lg bg-violet-200">
           GAME HISTORY
+        </h2>
+        <ul className="max-h-128 overflow-y-auto mt-2 bg-violet-200 border-2 rounded-lg">
           {matches
             .filter(
               (matches) =>
@@ -36,7 +38,10 @@ function PlayerData() {
             )
             .map((m, index) => {
               return (
-                <li key={index} className="text-xl font-normal text-justify">
+                <li
+                  key={index}
+                  className="text-xl font-normal text-center bg-violet-100 rounded-lg border-2 m-2"
+                >
                   {m.playerA.name} VS {m.playerB.name}
                   <br />
                   {m.playerA.played} - {m.playerB.played}

@@ -2,25 +2,23 @@ import { useEffect } from "react";
 import useMatches from "../UseMatches";
 import rps from "../Assets/rps.gif";
 const Ongoing = () => {
-  const { live, wsConnect, totalGamesAll } = useMatches();
+  const { live, wsConnect, totalGamesAll, loadHistory } = useMatches();
 
   useEffect(() => {
     wsConnect();
+    loadHistory();
   }, []);
 
   return (
     <div>
-      <h1>
-        <b>LIVE MATCHES</b>
-      </h1>
-      <h2>TOTAL MATCHES FOUND: {totalGamesAll}</h2> <br />
+      <h1 className="text-4xl font-bold text-center">LIVE MATCHES</h1>
+      {/* <h2>TOTAL MATCHES FOUND: {totalGamesAll}</h2> <br /> */}
       <br />
-      <br />
-      <ul>
+      <ul className="overflow-y-auto h-screen">
         {live.map((m, index) => {
           return (
             <li
-              className="text-2xl flex flex-row m-2 items-center"
+              className="text-2xl flex flex-row justify-between m-2 items-center bg-violet-200 border-2 rounded-lg"
               key={m.gameId + index}
             >
               {m.playerA.name + " VS " + m.playerB.name}

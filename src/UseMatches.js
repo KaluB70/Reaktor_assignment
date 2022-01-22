@@ -7,6 +7,8 @@ const useMatches = () => {
 
   const [state, setState] = useContext(AppContext);
   const [live, setLive] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const wsConnect = () => {
     const SOCKET = new WebSocket(
       "ws://bad-api-assignment.reaktor.com/rps/live"
@@ -19,10 +21,6 @@ const useMatches = () => {
       handleMatch(JSON.parse(JSONdata));
     };
   };
-
-  useEffect(() => {
-    loadHistory();
-  }, []);
 
   useEffect(() => {
     handlePlayers();
@@ -162,24 +160,22 @@ const useMatches = () => {
     }
   };
 
-  async function loadHistory() {
-    try {
-      let response = await fetch(API_URL + API_CURSOR);
-      if (response.ok) {
-        let result = await response.json();
-        if (result.data.length < 1) return;
-        let newArr = [];
+  const loadHistory = () => {
+    fetch(API_URL + API_CURSOR)
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.cursor === null) {
+          setLoading(false);
+          return;
+        }
         let game = {};
         result.data.forEach((match) => {
           game = {
             gameId: match.gameId,
-            t: match.t,
             playerA: { name: match.playerA.name, played: match.playerA.played },
             playerB: { name: match.playerB.name, played: match.playerB.played },
-            isRunning: false,
             winner: checkWinner(match.playerA, match.playerB),
           };
-          newArr.push(game);
         });
 
         setState((prevState) => ({
@@ -191,33 +187,25 @@ const useMatches = () => {
           ),
         }));
 
-        if (result.cursor !== API_CURSOR && result.cursor != null) {
+        if (
+          result.cursor !== API_CURSOR &&
+          result.cursor != null &&
+          result.data.length > 1
+        ) {
           API_CURSOR = result.cursor;
-          await sleep(50);
           loadHistory();
         }
-      } else {
-        await sleep(10000);
-        loadHistory();
-      }
-    } catch (error) {
-      console.log("yes");
-    }
-    // let newArr = result.data.filter(
-    //   (match) =>
-    //     match.playerA.name.includes(state.searchPlayer) ||
-    //     match.playerB.name.includes(state.searchPlayer)
-    // );
-  }
+      })
+      .catch(() => {
+        setTimeout(() => loadHistory(), 30000);
+      });
+  };
   const handlePlayers = () => {
     setState((prevState) => ({
       ...prevState,
       players: [...new Set(prevState.players)],
     }));
   };
-  function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
 
   const handleChange = (e) => {
     setState((prevState) => ({
@@ -239,7 +227,6 @@ const useMatches = () => {
     playerCount: state.players.length,
     wsConnect,
     handleChange,
-    loadHistory,
     players: state.players,
     live,
     winRatio: state.stats.winRatio,
@@ -252,6 +239,8 @@ const useMatches = () => {
     // mostRecentGames,
     handleChoosePlayer,
     chosenPlayer: state.chosenPlayer,
+    loading,
+    loadHistory,
   };
 };
 export default useMatches;

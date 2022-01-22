@@ -6,9 +6,9 @@ import Players from "./Components/Players";
 
 function App() {
   return (
-    <div className="flex flex-row justify-evenly text-2xl font-mono">
-      <Ongoing className="text-2xl"></Ongoing>
-      <Players className="text-2xl"></Players>
+    <div className="flex flex-row justify-evenly text-2xl font-mono bg-violet-300 h-screen">
+      <Ongoing></Ongoing>
+      <Players></Players>
       <PlayerData></PlayerData>
     </div>
   );

@@ -10,6 +10,7 @@ function Players() {
     handleChoosePlayer,
     chosenPlayer,
     playerCount,
+    loading,
   } = useMatches();
 
   const changeValue = (e) => {
@@ -20,25 +21,28 @@ function Players() {
   };
 
   return (
-    <div className="">
-      <b>PLAYERS:</b>
-      <img className="max-h-24" src={giphy} alt="loading players..."></img>
-
-      <br />
+    <div>
+      <div className="flex flex-col items-center">
+        <h1 className="font-extrabold text-4xl text-center">PLAYERS</h1>
+        {loading ? (
+          <img className="max-h-32" src={giphy} alt="loading players..."></img>
+        ) : null}
+      </div>
       <input
+        className="border-2 rounded-lg"
         type="search"
         placeholder="Enter name..."
         onChange={changeValue}
       ></input>
       <p>{playerCount} players found</p>
-      <div className="max-h-96 overflow-y-scroll bg-slate-100">
+      <div className=" w-80 max-h-128 overflow-y-auto bg-violet-200 border-2 rounded-lg mt-4">
         {players
           .sort()
           .filter((n) => n.toLowerCase().includes(searchPlayer.toLowerCase()))
           .map((m, index) => {
             return (
               <a
-                className="font-mono hover:text-3xl hover:text-green-400"
+                className="font-mono hover:text-3xl hover:bg-violet-100 hover:text-violet-600 rounded-lg"
                 href="#"
                 onClick={choosePlayer}
                 key={m + index}
