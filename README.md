@@ -18,3 +18,4 @@ It is not yet optimized and has a lot of work to do to make it handle the data a
 - Better data handling to minimize the amount of 429 errors and the need of API calls in general
 - Figure out the CORS situation
 - UI design optimization
+- Code commenting and fixing...

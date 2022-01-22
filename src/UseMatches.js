@@ -194,6 +194,8 @@ const useMatches = () => {
         ) {
           API_CURSOR = result.cursor;
           loadHistory();
+        } else {
+          setLoading(false);
         }
       })
       .catch(() => {
