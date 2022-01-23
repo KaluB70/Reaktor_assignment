@@ -21,3 +21,4 @@ Couldn't figure out the CORS error when fetching data for the time being, so I u
 - Figure out the CORS situation
 - UI design optimization
 - Code commenting and fixing...
+- Fixing onClick unresponsiveness
