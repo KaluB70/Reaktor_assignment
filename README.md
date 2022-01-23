@@ -3,6 +3,8 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).  
 The work here is basically me learning about "advanced" API usage and mass JSON data handling for a week. Learned a lot but still alot to learn! :)  
 
+##CURRENTLY WORKING ON "MERN" STACK TO MAKE THE PROJECT ALOT MORE OPTIMIZED
+
 ## To start
 
 
