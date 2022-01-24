@@ -1,16 +1,15 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "./app-context";
+import Axios from "axios";
 
 const useMatches = () => {
-  const API_URL = "https://bad-api-assignment.reaktor.com"; //Main API URL
-  let API_CURSOR = "/rps/history"; //URL endpoint for data pagination
+  const API_URL = "https://bad-api-assignment.reaktor.com";
+  let API_CURSOR = "/rps/history";
 
   const [state, setState] = useContext(AppContext);
-  const [live, setLive] = useState([]); //Live game tracking
-  const [loading, setLoading] = useState(true); //Is the program loaing data from API/DB?
+  const [live, setLive] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  //Function to connect to the live game websocket
-  //Calls hanleMatch() to handle the match from the message data
   const wsConnect = () => {
     const SOCKET = new WebSocket(
       "ws://bad-api-assignment.reaktor.com/rps/live"
@@ -23,14 +22,17 @@ const useMatches = () => {
       handleMatch(JSON.parse(JSONdata));
     };
   };
+  useEffect(() => {
+    getPlayersDB();
+    getMatchesDB();
+    getCursorsDB();
+  }, []);
 
-  //Runs when matches are updated  - handles players' names and their stats
   useEffect(() => {
     handlePlayers();
     handlePlayerStats();
   }, [state.matches]);
 
-  //Handles the player's stats based on the selected player
   const handlePlayerStats = () => {
     let winRatio,
       totalGames,
@@ -42,17 +44,12 @@ const useMatches = () => {
       paper = 0,
       scissors = 0;
 
-    //Name check - evaluating the array items name to the chosen players name
     let arr = state.matches.filter(
       (match) =>
         match.playerA.name === state.chosenPlayer ||
         match.playerB.name === state.chosenPlayer
     );
-
-    //Total games played
     totalGames = arr.length;
-
-    //Game result handling
     arr.forEach((m) => {
       if (m.winner === "DRAW") {
         draws++;
@@ -61,7 +58,6 @@ const useMatches = () => {
       } else {
         losses++;
       }
-      //Most played hand
       if (m.playerA.name === state.chosenPlayer) {
         if (m.playerA.played === "ROCK") {
           rock++;
@@ -89,7 +85,7 @@ const useMatches = () => {
     mostPlayedHand = Object.keys(mph).reduce((a, b) =>
       mph[a] > mph[b] ? a : b
     );
-    winRatio = !Number.isFinite(wins / (losses + draws)) //To handle dividedBy0 error
+    winRatio = !Number.isFinite(wins / (losses + draws))
       ? wins
       : wins / (losses + draws);
 
@@ -106,8 +102,6 @@ const useMatches = () => {
       },
     }));
   };
-
-  //Takes data about a match to pass it to the state
   function handleMatch(ev) {
     let game = {
       gameId: ev.gameId,
@@ -122,8 +116,6 @@ const useMatches = () => {
       handleResult(ev, game);
     }
   }
-
-  //Handles starting games
   function handleBegin(game) {
     let tempGame = game;
     tempGame.isRunning = true;
@@ -137,8 +129,6 @@ const useMatches = () => {
       ),
     }));
   }
-
-  //Handles ended/ending games
   function handleResult(event, game) {
     let tempGame = game;
     tempGame.isRunning = false;
@@ -147,7 +137,7 @@ const useMatches = () => {
     tempGame.playerB.played = event.playerB.played;
     tempGame.winner = checkWinner(tempGame.playerA, tempGame.playerB);
 
-    setLive((prevLive) => prevLive.filter((m) => m.gameId !== tempGame.gameId)); //Takes finished matches out from "Live" state
+    setLive((prevLive) => prevLive.filter((m) => m.gameId !== tempGame.gameId));
     setState((prevState) => ({
       ...prevState,
       matches: prevState.matches.concat(tempGame),
@@ -158,8 +148,6 @@ const useMatches = () => {
       currentGameId: tempGame.gameId,
     }));
   }
-
-  //Returns the matches winner
   const checkWinner = (A, B) => {
     if (A.played === B.played) {
       return "DRAW";
@@ -178,9 +166,8 @@ const useMatches = () => {
     }
   };
 
-  //Bad implementation of loading history data from the API - Better solution on the works
   const loadHistory = () => {
-    fetch(API_URL + API_CURSOR)
+    Axios.get(API_URL + API_CURSOR)
       .then((response) => response.json())
       .then((result) => {
         if (result.cursor === null) {
@@ -195,16 +182,20 @@ const useMatches = () => {
             playerB: { name: match.playerB.name, played: match.playerB.played },
             winner: checkWinner(match.playerA, match.playerB),
           };
+          addCursor(match.cursor);
+          addPlayer(match.playerA.name);
+          addPlayer(match.playerB.name);
+          addMatch(game);
         });
 
-        setState((prevState) => ({
-          ...prevState,
-          matches: prevState.matches.concat(game),
-          players: prevState.players.concat(
-            game.playerA.name,
-            game.playerB.name
-          ),
-        }));
+        // setState((prevState) => ({
+        //   ...prevState,
+        //   matches: prevState.matches.concat(game),
+        //   players: prevState.players.concat(
+        //     game.playerA.name,
+        //     game.playerB.name
+        //   ),
+        // }));
 
         if (
           result.cursor !== API_CURSOR &&
@@ -221,8 +212,6 @@ const useMatches = () => {
         setTimeout(() => loadHistory(), 30000);
       });
   };
-
-  //Handles players - no duplicates
   const handlePlayers = () => {
     setState((prevState) => ({
       ...prevState,
@@ -230,15 +219,12 @@ const useMatches = () => {
     }));
   };
 
-  //Realtime search results
   const handleChange = (e) => {
     setState((prevState) => ({
       ...prevState,
       searchPlayer: e,
     }));
   };
-
-  //Handles the chosen player based on user input, triggers to show the needed data
   const handleChoosePlayer = (e) => {
     setState((prevState) => ({
       ...prevState,
@@ -246,6 +232,68 @@ const useMatches = () => {
       stats: { name: e },
     }));
     handlePlayerStats();
+  };
+
+  const addMatch = (game) => {
+    Axios.post("http://localhost:3001/addMatch", {
+      type: game.type,
+      gameId: game.gameId,
+      t: game.t,
+      playerA: { name: game.playerA.name, played: game.playerA.played },
+      playerB: { name: game.playerB.played, played: game.playerB.played },
+      winner: game.winner,
+    });
+  };
+
+  const addPlayer = (name) => {
+    let duplicate = false;
+    getPlayersDB.forEach((m) => {
+      if (m.name === name) {
+        duplicate = true;
+      }
+    });
+    if (!duplicate) {
+      Axios.post("http://localhost:3001/addPlayer", { name: name });
+    }
+  };
+
+  const addCursor = (cursor) => {
+    let duplicate = false;
+    getCursorsDB.forEach((c) => {
+      if (c.cursor === cursor) {
+        duplicate = true;
+      }
+    });
+    if (!duplicate) {
+      Axios.post("http://localhost:3001/addCursor", { cursor: cursor });
+    }
+  };
+  const getMatchesDB = () => {
+    Axios.get("http://localhost:3001/getMatches").then((response) => {
+      setState((prevState) => ({
+        ...prevState,
+        matches: response.data.matches,
+      }));
+      return response.data;
+    });
+  };
+  const getPlayersDB = () => {
+    Axios.get("http://localhost:3001/getPlayers").then((response) => {
+      setState((prevState) => ({
+        ...prevState,
+        players: response.data,
+      }));
+      return response.data;
+    });
+  };
+
+  const getCursorsDB = () => {
+    Axios.get("http://localhost:3001/getPlayers").then((response) => {
+      setState((prevState) => ({
+        ...prevState,
+        players: response.data,
+      }));
+    });
   };
   return {
     matches: state.matches,
@@ -262,6 +310,7 @@ const useMatches = () => {
     totalGamesAll: state.matches.length,
     mostPlayedHand: state.stats.mostPlayedHand,
     draws: state.stats.draws,
+    // mostRecentGames,
     handleChoosePlayer,
     chosenPlayer: state.chosenPlayer,
     loading,

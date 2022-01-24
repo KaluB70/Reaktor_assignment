@@ -38,17 +38,19 @@ function Players() {
       <div className=" w-80 max-h-128 overflow-y-auto bg-violet-200 border-2 rounded-lg mt-4">
         {players
           .sort()
-          .filter((n) => n.toLowerCase().includes(searchPlayer.toLowerCase()))
+          .filter((n) =>
+            n.name.toLowerCase().includes(searchPlayer.toLowerCase())
+          )
           .map((m, index) => {
             return (
               <a
                 className="font-mono hover:text-3xl hover:bg-violet-100 hover:text-violet-600 rounded-lg"
                 href="#"
                 onClick={choosePlayer}
-                key={m + index}
+                key={m.name + index}
                 value={chosenPlayer}
               >
-                {m}
+                {m.name}
                 <br />
               </a>
             );

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import useMatches from "../UseMatches";
 import rps from "../Assets/rps.gif";
 const Ongoing = () => {
-  const { live, wsConnect, totalGamesAll, loadHistory } = useMatches();
+  const { live, wsConnect, loadHistory } = useMatches();
 
   useEffect(() => {
     wsConnect();

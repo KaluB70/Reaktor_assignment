@@ -1,4 +1,5 @@
 import "./App.css";
+import History from "./Components/History";
 import Ongoing from "./Components/Ongoing";
 import PlayerData from "./Components/PlayerData";
 import Players from "./Components/Players";
