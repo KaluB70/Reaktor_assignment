@@ -1,11 +1,15 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "./app-context";
 import Axios from "axios";
+import axios from "axios";
+import { get } from "mongoose";
 
 const useMatches = () => {
   const API_URL = "https://bad-api-assignment.reaktor.com";
   let API_CURSOR = "/rps/history";
-
+  let cursors = [];
+  let matches = [];
+  let players = [];
   const [state, setState] = useContext(AppContext);
   const [live, setLive] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,16 +26,22 @@ const useMatches = () => {
       handleMatch(JSON.parse(JSONdata));
     };
   };
-  useEffect(() => {
-    getPlayersDB();
-    getMatchesDB();
-    getCursorsDB();
-  }, []);
 
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     // loadHistory();
+  //   }, 2000);
+  //   return () => clearTimeout(timeout);
+  // }, []);
+  const fetchDB = () => {
+    matches = getMatchesDB();
+    players = getPlayersDB();
+    cursors = getCursorsDB();
+  };
   useEffect(() => {
     handlePlayers();
     handlePlayerStats();
-  }, [state.matches]);
+  }, [state.chosenPlayer]);
 
   const handlePlayerStats = () => {
     let winRatio,
@@ -121,13 +131,13 @@ const useMatches = () => {
     tempGame.isRunning = true;
 
     setLive((prevState) => prevState.concat(tempGame));
-    setState((prevState) => ({
-      ...prevState,
-      players: prevState.players.concat(
-        tempGame.playerA.name,
-        tempGame.playerB.name
-      ),
-    }));
+    // setState((prevState) => ({
+    //   ...prevState,
+    //   players: prevState.players.concat(
+    //     tempGame.playerA.name,
+    //     tempGame.playerB.name
+    //   ),
+    // }));
   }
   function handleResult(event, game) {
     let tempGame = game;
@@ -141,11 +151,6 @@ const useMatches = () => {
     setState((prevState) => ({
       ...prevState,
       matches: prevState.matches.concat(tempGame),
-      players: prevState.players.concat(
-        tempGame.playerA.name,
-        tempGame.playerB.name
-      ),
-      currentGameId: tempGame.gameId,
     }));
   }
   const checkWinner = (A, B) => {
@@ -166,52 +171,87 @@ const useMatches = () => {
     }
   };
 
-  const loadHistory = () => {
-    Axios.get(API_URL + API_CURSOR)
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.cursor === null) {
-          setLoading(false);
-          return;
-        }
-        let game = {};
-        result.data.forEach((match) => {
-          game = {
-            gameId: match.gameId,
-            playerA: { name: match.playerA.name, played: match.playerA.played },
-            playerB: { name: match.playerB.name, played: match.playerB.played },
-            winner: checkWinner(match.playerA, match.playerB),
-          };
-          addCursor(match.cursor);
-          addPlayer(match.playerA.name);
-          addPlayer(match.playerB.name);
-          addMatch(game);
-        });
+  // const loadHistory = async () => {
+  //   await Axios.get(API_URL.concat(API_CURSOR)).then((res) => {
+  //     let index = cursors.some((c) => c === "/rps/history?cursor=ejhG_6SwC5pT");
+  //     console.log(index);
+  //   });
+  // };
 
-        // setState((prevState) => ({
-        //   ...prevState,
-        //   matches: prevState.matches.concat(game),
-        //   players: prevState.players.concat(
-        //     game.playerA.name,
-        //     game.playerB.name
-        //   ),
-        // }));
+  // const loadHistory = async () => {
+  //   await Axios.get(API_URL.concat(API_CURSOR))
+  //     .then((res) => {
+  //       if (
+  //         res.data.cursor === null ||
+  //         cursors.some((c) => c === res.data.cursor)
+  //       ) {
+  //         setLoading(false);
+  //         console.log("API REFRESHED");
+  //         // return;
+  //       }
+  //       let game = {};
+  //       res.data.data.forEach((match) => {
+  //         let game = {};
+  //         // console.log(matches, match.gameId);
+  //         if (!matches.some((m) => m.gameId === match.gameId)) {
+  //           game = {
+  //             type: match.type,
+  //             t: match.t,
+  //             gameId: match.gameId,
+  //             playerA: {
+  //               name: match.playerA.name,
+  //               played: match.playerA.played,
+  //             },
+  //             playerB: {
+  //               name: match.playerB.name,
+  //               played: match.playerB.played,
+  //             },
+  //             winner: checkWinner(match.playerA, match.playerB),
+  //           };
+  //           console.log("NEW MATCH ADDED");
+  //           addMatch(game);
+  //         }
+  //         if (!players.some((p) => p.name === match.playerA.name)) {
+  //           // console.log(match.playerA.name + " ADDED");
+  //           addPlayer(match.playerA);
+  //         }
+  //         if (!players.some((p) => p.name === match.playerB.name)) {
+  //           // console.log(match.playerA.name + " ADDED");
+  //           addPlayer(match.playerB.name);
+  //         }
+  //         // setTimeout(() => addPlayer(game.playerA), 300);
+  //         // setTimeout(() => addPlayer(game.playerB), 300);
+  //         // setTimeout(() => addMatch(game), 300);
+  //         // addPlayer(game.playerB);
+  //       });
+  //       // addCursor(res.data.cursor);
 
-        if (
-          result.cursor !== API_CURSOR &&
-          result.cursor != null &&
-          result.data.length > 1
-        ) {
-          API_CURSOR = result.cursor;
-          loadHistory();
-        } else {
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        setTimeout(() => loadHistory(), 30000);
-      });
-  };
+  //       setState((prevState) => ({
+  //         ...prevState,
+  //         matches: prevState.matches.concat(game),
+  //         players: prevState.players.concat(
+  //           game.playerA.name,
+  //           game.playerB.name
+  //         ),
+  //       }));
+
+  //       if (
+  //         res.data.cursor !== API_CURSOR &&
+  //         res.data.cursor != null &&
+  //         res.data.data.length > 1
+  //       ) {
+  //         API_CURSOR = res.data.cursor;
+  //         loadHistory();
+  //         // loadHistory();
+  //       } else {
+  //         setLoading(false);
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //       setTimeout(() => loadHistory(), 3000);
+  //     });
+  // };
   const handlePlayers = () => {
     setState((prevState) => ({
       ...prevState,
@@ -234,8 +274,8 @@ const useMatches = () => {
     handlePlayerStats();
   };
 
-  const addMatch = (game) => {
-    Axios.post("http://localhost:3001/addMatch", {
+  const addMatch = async (game) => {
+    await Axios.post("http://localhost:3001/addMatch", {
       type: game.type,
       gameId: game.gameId,
       t: game.t,
@@ -243,57 +283,80 @@ const useMatches = () => {
       playerB: { name: game.playerB.played, played: game.playerB.played },
       winner: game.winner,
     });
+    setState((prevState) => ({
+      ...prevState,
+      matches: prevState.matches.concat(game),
+    }));
   };
 
-  const addPlayer = (name) => {
-    let duplicate = false;
-    getPlayersDB.forEach((m) => {
-      if (m.name === name) {
-        duplicate = true;
-      }
-    });
-    if (!duplicate) {
-      Axios.post("http://localhost:3001/addPlayer", { name: name });
-    }
+  const addPlayer = (player) => {
+    Axios.post("http://localhost:3001/addPlayer", { name: player.name });
+    setState((prevState) => ({
+      ...prevState,
+      players: prevState.players.concat(player),
+    }));
   };
 
   const addCursor = (cursor) => {
-    let duplicate = false;
-    getCursorsDB.forEach((c) => {
-      if (c.cursor === cursor) {
-        duplicate = true;
-      }
+    Axios.post("http://localhost:3001/addCursor", {
+      cursor: cursor,
     });
-    if (!duplicate) {
-      Axios.post("http://localhost:3001/addCursor", { cursor: cursor });
-    }
-  };
-  const getMatchesDB = () => {
-    Axios.get("http://localhost:3001/getMatches").then((response) => {
-      setState((prevState) => ({
-        ...prevState,
-        matches: response.data.matches,
-      }));
-      return response.data;
-    });
-  };
-  const getPlayersDB = () => {
-    Axios.get("http://localhost:3001/getPlayers").then((response) => {
-      setState((prevState) => ({
-        ...prevState,
-        players: response.data,
-      }));
-      return response.data;
-    });
+    setState((prevState) => ({
+      ...prevState,
+      cursors: prevState.cursors.concat(cursor),
+    }));
   };
 
-  const getCursorsDB = () => {
-    Axios.get("http://localhost:3001/getPlayers").then((response) => {
+  const getMatchesDB = () => {
+    let matchArr = [];
+    Axios.get("http://localhost:3001/getMatches").then((response) => {
+      response.data.forEach((match) => matchArr.push(match));
       setState((prevState) => ({
         ...prevState,
-        players: response.data,
+        matches: matchArr,
       }));
     });
+    return matchArr;
+  };
+  const getPlayersDB = () => {
+    let playerArr = [];
+    Axios.get("http://localhost:3001/getPlayers").then((response) => {
+      response.data.forEach((player) => playerArr.push(player));
+      setState((prevState) => ({
+        ...prevState,
+        players: playerArr,
+      }));
+    });
+  };
+  const getCursorsDB = () => {
+    let cursArr = [];
+    Axios.get("http://localhost:3001/getCursors").then((response) => {
+      response.data.forEach((c) => cursArr.push(c.cursor));
+      setState((prevState) => ({
+        ...prevState,
+        cursors: cursArr,
+      }));
+    });
+    return cursArr;
+  };
+
+  const initLoad = async () => {
+    let cursorArr = [];
+    let matchArr = [];
+    let playerArr = [];
+    const response = await Axios.get("http://localhost:3001/getCursors");
+    response.data.forEach((c) => cursorArr.push(c.cursor));
+    const response2 = await Axios.get("http://localhost:3001/getPlayers");
+    response2.data.forEach((player) => playerArr.push(player));
+    const response3 = await Axios.get("http://localhost:3001/getMatches");
+    response3.data.forEach((match) => matchArr.push(match));
+    console.log(matchArr);
+    setState((prevState) => ({
+      ...prevState,
+      cursors: cursorArr,
+      players: playerArr,
+      matches: matchArr,
+    }));
   };
   return {
     matches: state.matches,
@@ -314,7 +377,12 @@ const useMatches = () => {
     handleChoosePlayer,
     chosenPlayer: state.chosenPlayer,
     loading,
-    loadHistory,
+    // loadHistory,
+    getPlayersDB,
+    getCursorsDB,
+    getMatchesDB,
+    fetchDB,
+    initLoad,
   };
 };
 export default useMatches;

@@ -47,7 +47,7 @@ function Players() {
                 className="font-mono hover:text-3xl hover:bg-violet-100 hover:text-violet-600 rounded-lg"
                 href="#"
                 onClick={choosePlayer}
-                key={m.name + index}
+                key={m + index}
                 value={chosenPlayer}
               >
                 {m.name}

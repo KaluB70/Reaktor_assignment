@@ -5,8 +5,10 @@ const AppContext = createContext([{}, () => {}]);
 const AppProvider = ({ children }) => {
   let matches = [];
   let players = [];
+  let cursors = [];
 
   const [state, setState] = useState({
+    cursors: cursors,
     matches: matches,
     currentGameId: 0,
     searchPlayer: "",

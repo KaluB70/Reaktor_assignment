@@ -2,11 +2,22 @@ import { useEffect } from "react";
 import useMatches from "../UseMatches";
 import rps from "../Assets/rps.gif";
 const Ongoing = () => {
-  const { live, wsConnect, loadHistory } = useMatches();
+  const {
+    live,
+    wsConnect,
+    loadHistory,
+    getPlayersDB,
+    getMatchesDB,
+    getCursorsDB,
+    fetchDB,
+    initLoad,
+  } = useMatches();
 
   useEffect(() => {
     wsConnect();
-    loadHistory();
+    // loadHistory();
+    // initLoad();
+    fetchDB();
   }, []);
 
   return (
