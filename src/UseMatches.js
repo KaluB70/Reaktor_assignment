@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "./app-context";
+import Axios from "axios";
 
 const useMatches = () => {
   const API_URL = "https://bad-api-assignment.reaktor.com"; //Main API URL
@@ -180,26 +181,27 @@ const useMatches = () => {
 
   //Bad implementation of loading history data from the API - Better solution on the works
   const loadHistory = () => {
-    fetch(API_URL + API_CURSOR)
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.cursor === null) {
+    Axios.get(API_URL.concat(API_CURSOR))
+      .then((response) => {
+        if (response.data.cursor === null) {
           setLoading(false);
+          console.log("HISTORY LOADED");
           return;
         }
         let game = {};
-        result.data.forEach((match) => {
+        let gameArr = [];
+        response.data.data.forEach((match) => {
           game = {
             gameId: match.gameId,
             playerA: { name: match.playerA.name, played: match.playerA.played },
             playerB: { name: match.playerB.name, played: match.playerB.played },
             winner: checkWinner(match.playerA, match.playerB),
           };
+          gameArr.push(game);
         });
-
         setState((prevState) => ({
           ...prevState,
-          matches: prevState.matches.concat(game),
+          matches: prevState.matches.concat(gameArr),
           players: prevState.players.concat(
             game.playerA.name,
             game.playerB.name
@@ -207,11 +209,11 @@ const useMatches = () => {
         }));
 
         if (
-          result.cursor !== API_CURSOR &&
-          result.cursor != null &&
-          result.data.length > 1
+          response.data.cursor !== API_CURSOR &&
+          response.data.cursor != null &&
+          response.data.data.length > 1
         ) {
-          API_CURSOR = result.cursor;
+          API_CURSOR = response.data.cursor;
           loadHistory();
         } else {
           setLoading(false);

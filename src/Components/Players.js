@@ -23,7 +23,7 @@ function Players() {
   return (
     <div>
       <div className="flex flex-col items-center">
-        <h1 className="font-extrabold text-4xl text-center">PLAYERS</h1>
+        <h1 className="text-4xl text-center">PLAYERS</h1>
         {loading ? (
           <img className="max-h-32" src={giphy} alt="loading players..."></img>
         ) : null}
